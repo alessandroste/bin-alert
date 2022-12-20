@@ -1,0 +1,22 @@
+[
+    {
+        "file": "entsorgungskalender_papier_2022.csv",
+        "year": 2022,
+        "type": "PAPER"
+    },
+    {
+        "file": "entsorgungskalender_papier_2023.csv",
+        "year": 2023,
+        "type": "PAPER"
+    },
+    {
+        "file": "entsorgungskalender_karton_2022.csv",
+        "year": 2022,
+        "type": "CARDBOARD"
+    },
+    {
+        "file": "entsorgungskalender_karton_2023.csv",
+        "year": 2023,
+        "type": "CARDBOARD"
+    }
+]
