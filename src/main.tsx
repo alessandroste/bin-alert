@@ -5,6 +5,7 @@ import App from './App'
 import { Calendar } from './Calendar/Calendar'
 import { Icon } from './Components/Icon'
 import { ThemeToggle } from './Components/ThemeToggle'
+import { Constants } from './Constants'
 import './index.css'
 
 let calendar = new Calendar()
@@ -19,10 +20,12 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       </div>
       <div className='navbar-end'>
         <ThemeToggle />
-        <button
-          className='btn btn-ghost' >
+        <a
+          className='btn btn-ghost'
+          href={Constants.REPO_GITLAB_URL}
+          target={'_blank'}>
           <IconBrandGitlab />
-        </button>
+        </a>
       </div>
     </nav>
     <React.StrictMode>

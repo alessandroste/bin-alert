@@ -1,7 +1,8 @@
-import { IconArrowDownCircle, IconArrowUpRightCircle, IconQuestionCircle, IconShare } from '@tabler/icons'
+import { IconArrowDownCircle, IconArrowUpRightCircle } from '@tabler/icons'
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { Calendar, Category, ICalendarOptions, IDatasetCategory, IDatasetEvent, IDatasetFilter, ITimeDelta, Material } from './Calendar/Calendar'
 import { distinctFilter } from './Calendar/Utilities'
+import { CalendarView } from './Components/CalendarView'
 import { CollapsibleMultiselect } from './Components/CollapsibleMultiselect'
 
 interface IAppOptions {
@@ -267,8 +268,11 @@ function App(options: IAppOptions) {
           </div>
         </div>
         <div className='basis-full md:basis-2/3'>
-          <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+          <div className='card shadow-xl'>
+            <CalendarView />
+            {/* <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
             {generateDatesCards}
+          </div> */}
           </div>
         </div>
       </div>

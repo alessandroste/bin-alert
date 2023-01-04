@@ -1,4 +1,3 @@
-import './CollapsibleMultiselect.css'
 import { ChangeEvent, useEffect, useMemo, useState } from "react"
 
 export type Key = string
@@ -106,7 +105,7 @@ export function CollapsibleMultiselect(options: ICollapsibleMultiselectOptions):
                 {drawText}
             </div>
             <div className="collapse-content overflow-y-auto">
-                <div className='max-h-96'>
+                <div className='max-h-72'>
                     {drawItems}
                 </div>
             </div>

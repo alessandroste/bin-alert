@@ -24,6 +24,7 @@ module.exports = {
       },
       "garden",
     ],
-    darkTheme: "garden-dark"
+    darkTheme: "garden-dark",
+    logs: false
   }
 }
