@@ -179,7 +179,7 @@ function App(options: IAppOptions) {
   return (
     <div className="container mx-auto px-10">
       <div className='flex flex-wrap md:flex-nowrap flex-row gap-10 my-10'>
-        <div className="basis-full md:basis-1/3">
+        <div className="basis-full md:basis-1/4 ld:basis-1/3">
           <div className='card shadow-xl bg-base-100'>
             <div className='card-body'>
               <h2 className="card-title">Filters</h2>
@@ -261,18 +261,15 @@ function App(options: IAppOptions) {
                 <button className='btn btn-secondary gap-2'
                   onClick={() => calendar.createICalendar(filter, calendarOptions).then(s => openTextFile(s))}>
                   <IconArrowUpRightCircle className='h-6 w-6' />
-                  Open in new tab
+                  Open
                 </button>
               </div>
             </div>
           </div>
         </div>
-        <div className='basis-full md:basis-2/3'>
-          <div className='card shadow-xl'>
+        <div className='basis-full md:basis-3/4 ld:basis-2/3'>
+          <div className='card shadow-xl bg-base-100'>
             <CalendarView />
-            {/* <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
-            {generateDatesCards}
-          </div> */}
           </div>
         </div>
       </div>

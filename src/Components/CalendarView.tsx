@@ -1,17 +1,19 @@
+import { useMemo, useState } from "react"
+
 export interface ICalendarViewOptions {
 
 }
 
 export function CalendarView(options: ICalendarViewOptions): JSX.Element {
     const dayInMilliseconds = 1000 * 60 * 60 * 24
-    const now = new Date()
-    const today = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-
     const formatDate = (date: Date) => date.toLocaleDateString(undefined, { day: '2-digit' })
     const formatDateShort = (date: Date) => date.toLocaleDateString(undefined, { weekday: 'short' })
+    const formatDateMonthYear = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+
+    const [yearMonth, setYearMonth] = useState(new Date())
 
     const buildDaysOfMonth = function (monthDate: Date): Date[] {
-        const firstDayOfMonth = new Date(monthDate.getUTCFullYear(), monthDate.getUTCMonth())
+        const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth())
         const firstWeekDayOfMonth = firstDayOfMonth.getDay()
         const days = Array.apply(null, Array(42)).map(() => new Date())
 
@@ -28,27 +30,96 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
         return days;
     }
 
-    const buildCalendar = function (days: Date[]): JSX.Element[] {
-        return Array.apply(null, Array(6)).map((v, i) => (<tr className='h-24'>{days.slice(i * 7, (i + 1) * 7).map(d => {
-            const isMonth = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()
-            return (<td className={!isMonth ? 'bg-base-300' : ''}>{formatDate(d)}</td>)
-        })}</tr>))
-    }
+    const days = useMemo(() => buildDaysOfMonth(yearMonth), [yearMonth])
 
-    const buildHeader = function (days: Date[]): JSX.Element[] {
-        return Array.apply(null, Array(7)).map((v, i) => {
-            let day = formatDateShort(days[i])
-            return (<th key={day} className=''>{day}</th>)
+    const getCalendar = useMemo((): JSX.Element[] => {
+        return Array.apply(null, new Array(6))
+            .map((_, i) => days.slice(i * 7, (i + 1) * 7))
+            .filter(w => w.some(d =>
+                d.getFullYear() === yearMonth.getFullYear() &&
+                d.getMonth() === yearMonth.getMonth()))
+            .map((week, i) => {
+                return (
+                    <tr
+                        key={i}
+                        className='h-24'>
+                        {week.map(d => {
+                            const isMonth = d.getFullYear() === yearMonth.getFullYear() && d.getMonth() === yearMonth.getMonth()
+                            const className = (!isMonth ? 'bg-base-200' : '') + ' ' + 'align-top'
+                            return (
+                                <td
+                                    key={d.getTime()}
+                                    className={className}>
+                                    {formatDate(d)}
+                                </td>)
+                        })}
+                    </tr>)
+            })
+    }, [days, yearMonth])
+
+    const getHeader = useMemo((): JSX.Element[] => {
+        return days.splice(0, 7)
+            .map((_, i) => {
+                return (
+                    <th
+                        key={i}
+                        className=''>
+                        {formatDateShort(days[i])}
+                    </th>)
+            })
+    }, [days])
+
+    const onPaginationClick = (direction: 'prev' | 'next') => {
+        setYearMonth(ex => {
+            const m = new Date(ex)
+            if (direction === 'next')
+                if (m.getMonth() === 11) {
+                    m.setFullYear(m.getFullYear() + 1)
+                    m.setMonth(0)
+                } else {
+                    m.setMonth(m.getMonth() + 1)
+                }
+            else if (direction === 'prev')
+                if (m.getMonth() === 0) {
+                    m.setFullYear(m.getFullYear() - 1)
+                    m.setMonth(11)
+                } else {
+                    m.setMonth(m.getMonth() - 1)
+                }
+            return m
         })
     }
 
-    let days = buildDaysOfMonth(today)
+    const dateMonthYear = useMemo(() => formatDateMonthYear(yearMonth), [yearMonth])
 
     return (
-        <table className='table w-full'>
-            <thead>
-                <tr>{buildHeader(days)}</tr>
-            </thead>
-            <tbody>{buildCalendar(days)}</tbody>
-        </table>)
+        <div className=''>
+            <div className='flex justify-center w-full py-5 '>
+                <div className="btn-group">
+                    <button
+                        className="btn"
+                        onClick={() => onPaginationClick('prev')}>
+                        «
+                    </button>
+                    <button className="btn">
+                        {dateMonthYear}
+                    </button>
+                    <button
+                        className="btn"
+                        onClick={() => onPaginationClick('next')}>
+                        »
+                    </button>
+                </div>
+            </div>
+            <table className='table w-full'>
+                <thead>
+                    <tr>
+                        {getHeader}
+                    </tr>
+                </thead>
+                <tbody>
+                    {getCalendar}
+                </tbody>
+            </table>
+        </div>)
 }
