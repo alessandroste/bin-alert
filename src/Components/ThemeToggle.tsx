@@ -7,10 +7,11 @@ export function ThemeToggle(): JSX.Element {
         themeChange(false)
     }, [])
 
-    return (<button
-        className='btn btn-ghost'
-        data-toggle-theme="garden,garden-dark"
-        data-act-class="ACTIVECLASS">
-        <IconSun />
-    </button>)
+    return (
+        <button
+            className='btn btn-ghost'
+            data-toggle-theme="garden,garden-dark"
+            data-act-class="theme-button-active">
+            <IconSun />
+        </button>)
 }

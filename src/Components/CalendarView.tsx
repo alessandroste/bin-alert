@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react"
+import './CalendarView.css'
+
+export interface IDayCell {
+    date: Date
+    text: string[]
+    tooltip?: string[]
+}
 
 export interface ICalendarViewOptions {
-
+    entries?: IDayCell[]
 }
 
 export function CalendarView(options: ICalendarViewOptions): JSX.Element {
@@ -11,6 +18,7 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
     const formatDateMonthYear = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
 
     const [yearMonth, setYearMonth] = useState(new Date())
+    const [today] = useState(new Date())
 
     const buildDaysOfMonth = function (monthDate: Date): Date[] {
         const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth())
@@ -41,21 +49,33 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
             .map((week, i) => {
                 return (
                     <tr
-                        key={i}
-                        className='h-24'>
+                        key={i}>
                         {week.map(d => {
                             const isMonth = d.getFullYear() === yearMonth.getFullYear() && d.getMonth() === yearMonth.getMonth()
-                            const className = (!isMonth ? 'bg-base-200' : '') + ' ' + 'align-top'
+                            const isToday = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()
+                            const cellClassName = 'h-24 relative align-top border-t' + (isMonth ? '' : ' bg-base-200') + (isToday ? '  text-primary-content' : '')
+                            const dayIndicatorClassName = 'rounded p-2' + (isToday ? ' bg-primary' : '')
+                            const cellEntry = options.entries?.find(e => e.date.getTime() === d.getTime())
                             return (
                                 <td
                                     key={d.getTime()}
-                                    className={className}>
-                                    {formatDate(d)}
+                                    className={cellClassName}>
+                                    <span className={dayIndicatorClassName}>
+                                        {formatDate(d)}
+                                    </span>
+                                    <div
+                                        className='absolute align-bottom right-0 p-4'>
+                                        <span
+                                            className='tooltip'
+                                            data-tip={cellEntry?.tooltip?.join('\n')}>
+                                            {cellEntry?.text?.join('')}
+                                        </span>
+                                    </div>
                                 </td>)
                         })}
                     </tr>)
             })
-    }, [days, yearMonth])
+    }, [days, yearMonth, options.entries])
 
     const getHeader = useMemo((): JSX.Element[] => {
         return days.splice(0, 7)
@@ -63,7 +83,7 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
                 return (
                     <th
                         key={i}
-                        className=''>
+                        className='rounded-none'>
                         {formatDateShort(days[i])}
                     </th>)
             })
@@ -90,6 +110,17 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
         })
     }
 
+    const onYearPaginationClick = (direction: 'prev' | 'next') => {
+        setYearMonth(ex => {
+            const m = new Date(ex)
+            if (direction === 'next')
+                m.setFullYear(m.getFullYear() + 1)
+            else if (direction === 'prev')
+                m.setFullYear(m.getFullYear() - 1)
+            return m
+        })
+    }
+
     const dateMonthYear = useMemo(() => formatDateMonthYear(yearMonth), [yearMonth])
 
     return (
@@ -97,17 +128,29 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
             <div className='flex justify-center w-full py-5 '>
                 <div className="btn-group">
                     <button
-                        className="btn"
-                        onClick={() => onPaginationClick('prev')}>
-                        «
+                        className="btn btn-primary"
+                        onClick={() => onYearPaginationClick('prev')}>
+                        《
                     </button>
-                    <button className="btn">
+                    <button
+                        className='btn btn-primary'
+                        onClick={() => onPaginationClick('prev')}>
+                        〈
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setYearMonth(today)}>
                         {dateMonthYear}
                     </button>
                     <button
-                        className="btn"
+                        className='btn btn-primary'
                         onClick={() => onPaginationClick('next')}>
-                        »
+                        〉
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => onYearPaginationClick('next')}>
+                        》
                     </button>
                 </div>
             </div>

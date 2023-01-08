@@ -1,4 +1,4 @@
-import { IconBrandGitlab } from '@tabler/icons'
+import { IconBrandGitlab, IconX } from '@tabler/icons'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -6,9 +6,11 @@ import { Calendar } from './Calendar/Calendar'
 import { Icon } from './Components/Icon'
 import { ThemeToggle } from './Components/ThemeToggle'
 import { Constants } from './Constants'
+
+import Licenses from './Assets/licenses.json'
 import './index.css'
 
-let calendar = new Calendar()
+const calendar = new Calendar()
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <div className='dotted'>
@@ -32,11 +34,44 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <App
         calendar={calendar} />
     </React.StrictMode>
-    <footer className="footer p-10 bg-neutral text-neutral-content">
+    <footer className="footer p-10 bg-base-300 text-base-content">
       <div>
         <span className="footer-title">Links</span>
-        <a className="link link-hover">Source</a>
+        <a
+          className="link link-hover"
+          href={Constants.REPO_GITLAB_URL}
+          target={'_blank'}>
+          Source code
+        </a>
+        <a
+          className='link link-hover'
+          href='https://opendata.swiss/en/organization/stadt-zurich'
+          target={'_blank'}>
+          Data source
+        </a>
+        <label
+          className="link link-hover"
+          htmlFor="modal-licenses">
+          Licenses
+        </label>
       </div>
     </footer>
+
+    <input type="checkbox" id="modal-licenses" className="modal-toggle" />
+    <div className="modal">
+      <div className="modal-box relative">
+        <label htmlFor="modal-licenses" className="btn btn-sm btn-circle absolute right-2 top-2">
+          <IconX />
+        </label>
+        <h3 className="text-lg font-bold">Licenses</h3>
+        <div className="py-4">
+          <ul>
+            {Licenses.map((l, i) => (<li key={i}>
+              <a href={l.licenseUrl} target={'_blank'} className='link link-hover'>{l.project}</a>
+            </li>))}
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 )

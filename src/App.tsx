@@ -2,7 +2,7 @@ import { IconArrowDownCircle, IconArrowUpRightCircle } from '@tabler/icons'
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { Calendar, Category, ICalendarOptions, IDatasetCategory, IDatasetEvent, IDatasetFilter, ITimeDelta, Material } from './Calendar/Calendar'
 import { distinctFilter } from './Calendar/Utilities'
-import { CalendarView } from './Components/CalendarView'
+import { CalendarView, IDayCell } from './Components/CalendarView'
 import { CollapsibleMultiselect } from './Components/CollapsibleMultiselect'
 
 interface IAppOptions {
@@ -142,23 +142,22 @@ function App(options: IAppOptions) {
     }
   }, [categories])
 
-  const generateDatesCards = useMemo(() => {
-    return dates
+  const generateDatesViews = useMemo(() => {
+    const cells = dates
       .sort((d1, d2) => d1.date.getTime() - d2.date.getTime())
-      .map((d, i) => {
-        const icon = categoryToIcon(d.category)
-        return (
-          <div key={i} className='card bg-base-100 shadow-xl'>
-            <div className='card-body'>
-              <h2 className='card-title'>
-                {d.date.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-              </h2>
-              <p>
-                {icon} {categories?.get(d.category)?.area}
-              </p>
-            </div>
-          </div>)
-      })
+      .reduce((acc: { [key: string]: IDayCell }, value: IDatasetEvent) => {
+        const key = value.date.toLocaleDateString('en', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        const icon = categoryToIcon(value.category)
+        const entry = acc[key] ?? { date: value.date, text: [], tooltip: [] }
+        if (!entry.text.includes(icon))
+          entry.text.push(icon)
+        let tooltipText = icon + ' - ' + categories?.get(value.category)?.area
+        if (!entry.tooltip?.includes(tooltipText))
+          entry.tooltip?.push(tooltipText)
+        acc[key] = entry
+        return acc
+      }, {})
+    return Object.values(cells)
   }, [categoryToIcon, dates, categories])
 
   const downloadTextFile = (text: string) => {
@@ -269,7 +268,8 @@ function App(options: IAppOptions) {
         </div>
         <div className='basis-full md:basis-3/4 ld:basis-2/3'>
           <div className='card shadow-xl bg-base-100'>
-            <CalendarView />
+            <CalendarView
+              entries={generateDatesViews} />
           </div>
         </div>
       </div>
