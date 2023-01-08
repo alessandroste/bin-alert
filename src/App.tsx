@@ -1,4 +1,4 @@
-import { IconArrowDownCircle, IconArrowUpRightCircle } from '@tabler/icons'
+import { IconArrowDownCircle, IconArrowUpRightCircle, IconInfoCircle } from '@tabler/icons'
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import { Calendar, Category, ICalendarOptions, IDatasetCategory, IDatasetEvent, IDatasetFilter, ITimeDelta, Material } from './Calendar/Calendar'
 import { distinctFilter } from './Calendar/Utilities'
@@ -176,12 +176,12 @@ function App(options: IAppOptions) {
   }
 
   return (
-    <div className="container mx-auto px-10">
+    <div className='container mx-auto px-10'>
       <div className='flex flex-wrap md:flex-nowrap flex-row gap-10 my-10'>
-        <div className="basis-full md:basis-1/4 ld:basis-1/3">
+        <div className='basis-full md:basis-1/4 ld:basis-1/3'>
           <div className='card shadow-xl bg-base-100'>
             <div className='card-body'>
-              <h2 className="card-title">Filters</h2>
+              <h2 className='card-title'>Filters</h2>
               <label className='label'>
                 <span className='label-text'>Materials</span>
               </label>
@@ -213,8 +213,8 @@ function App(options: IAppOptions) {
               <input className='input'
                 type={'date'}
                 onChange={e => onDateChange(e.target.value, 'end')} />
-              <div className="divider"></div>
-              <h2 className="card-title">Event</h2>
+              <div className='divider'></div>
+              <h2 className='card-title'>Event</h2>
               <label className='label'>
                 <span className='label-text'>Event time</span>
               </label>
@@ -224,10 +224,21 @@ function App(options: IAppOptions) {
                 {Array.from(Object.entries(reminderOptions)).map(([k, v]) => (<option key={k} value={k}>{v.text}</option>))}
               </select>
               <label className='label'>
-                <span className='label-text'>Custom event duration</span>
+                <span className='label-text'>Custom event duration
+                  <div className='dropdown'>
+                    <label tabIndex={0} className='btn btn-circle btn-ghost btn-xs text-info'>
+                      <IconInfoCircle className='w-4 h-4' />
+                    </label>
+                    <div tabIndex={0} className='card compact dropdown-content shadow bg-base-100 rounded-box w-64'>
+                      <div className='card-body'>
+                        <p>Allows to customize the duration of the events. The default value is 15 minutes.</p>
+                      </div>
+                    </div>
+                  </div>
+                </span>
                 <input
-                  type="checkbox"
-                  className="toggle label-text-alt"
+                  type='checkbox'
+                  className='toggle label-text-alt'
                   onChange={e => setUiState(state => ({ ...state, eventDurationSelectorShowing: e.target.checked }))}
                   defaultChecked={uiState.eventDurationSelectorShowing} />
               </label>
@@ -238,10 +249,20 @@ function App(options: IAppOptions) {
                   {Array.from(Object.entries(eventDurationOptions)).map(([k, v]) => (<option key={k} value={k}>{v.text}</option>))}
                 </select>) : undefined}
               <label className='label'>
-                <span className='label-text'>Reminder</span>
+                <span className='label-text'>Reminder
+                  <div className='dropdown'>
+                    <label tabIndex={0} className='btn btn-circle btn-ghost btn-xs text-info'>
+                      <IconInfoCircle className='w-4 h-4' />
+                    </label>
+                    <div tabIndex={0} className='card compact dropdown-content shadow bg-base-100 rounded-box w-64'>
+                      <div className='card-body'>
+                        <p>Allows to set a reminder in the produced calendar for each event. Most of the online calendars do not support these alerts.</p>
+                      </div>
+                    </div>
+                  </div></span>
                 <input
-                  type="checkbox"
-                  className="toggle label-text-alt"
+                  type='checkbox'
+                  className='toggle label-text-alt'
                   onChange={e => setUiState(state => ({ ...state, reminderSelectorShowing: e.target.checked }))}
                   defaultChecked={uiState.reminderSelectorShowing} />
               </label>
@@ -251,7 +272,7 @@ function App(options: IAppOptions) {
                   onChange={onReminderTimeChange}>
                   {Array.from(Object.entries(reminderOptions)).map(([k, v]) => (<option key={k} value={k}>{v.text}</option>))}
                 </select>) : undefined}
-              <div className="card-actions justify-end pt-5">
+              <div className='card-actions justify-end pt-5'>
                 <button className='btn btn-primary gap-2'
                   onClick={() => calendar.createICalendar(filter, calendarOptions).then(s => downloadTextFile(s))}>
                   <IconArrowDownCircle className='h-6 w-6' />

@@ -62,13 +62,13 @@ export function CollapsibleMultiselect(options: ICollapsibleMultiselectOptions):
 
     const drawItem = function (c: boolean, h: (e: ChangeEvent<HTMLInputElement>) => void, v: string, k?: Key) {
         return (
-            <div key={k ?? ''} className="form-control">
-                <label className="label cursor-pointer">
-                    <span className="label-text">{v}</span>
+            <div key={k ?? ''} className='form-control'>
+                <label className='label cursor-pointer'>
+                    <span className='label-text'>{v}</span>
                     <input
                         id={k}
-                        type="checkbox"
-                        className="checkbox"
+                        type='checkbox'
+                        className='checkbox'
                         onChange={h}
                         checked={c} />
                 </label>
@@ -99,12 +99,12 @@ export function CollapsibleMultiselect(options: ICollapsibleMultiselectOptions):
     }, [selected])
 
     return (
-        <div className="collapse collapse-arrow bg-base-100 rounded-box">
-            <input type="checkbox" />
-            <div className="collapse-title text-ellipsis overflow-hidden whitespace-nowrap">
+        <div className='collapse collapse-arrow bg-base-100 rounded-box'>
+            <input type='checkbox' />
+            <div className='collapse-title text-ellipsis overflow-hidden whitespace-nowrap'>
                 {drawText}
             </div>
-            <div className="collapse-content overflow-y-auto">
+            <div className='collapse-content overflow-y-auto'>
                 <div className='max-h-72'>
                     {drawItems}
                 </div>

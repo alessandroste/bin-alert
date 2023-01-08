@@ -12,6 +12,11 @@ import './index.css'
 
 const calendar = new Calendar()
 
+interface ILicense {
+  project: string,
+  licenseUrl: string
+}
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <div className='dotted'>
     <nav className='navbar sticky top-0 shadow-xl z-20 bg-base-100'>
@@ -34,11 +39,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <App
         calendar={calendar} />
     </React.StrictMode>
-    <footer className="footer p-10 bg-base-300 text-base-content">
+    <footer className='footer p-10 bg-base-300 text-base-content'>
       <div>
-        <span className="footer-title">Links</span>
+        <span className='footer-title'>Links</span>
         <a
-          className="link link-hover"
+          className='link link-hover'
           href={Constants.REPO_GITLAB_URL}
           target={'_blank'}>
           Source code
@@ -50,23 +55,23 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
           Data source
         </a>
         <label
-          className="link link-hover"
-          htmlFor="modal-licenses">
+          className='link link-hover'
+          htmlFor='modal-licenses'>
           Licenses
         </label>
       </div>
     </footer>
 
-    <input type="checkbox" id="modal-licenses" className="modal-toggle" />
-    <div className="modal">
-      <div className="modal-box relative">
-        <label htmlFor="modal-licenses" className="btn btn-sm btn-circle absolute right-2 top-2">
+    <input type='checkbox' id='modal-licenses' className='modal-toggle' />
+    <div className='modal'>
+      <div className='modal-box relative'>
+        <label htmlFor='modal-licenses' className='btn btn-sm btn-circle btn-secondary absolute right-2 top-2'>
           <IconX />
         </label>
-        <h3 className="text-lg font-bold">Licenses</h3>
-        <div className="py-4">
+        <h3 className='text-lg font-bold'>Licenses</h3>
+        <div className='py-4'>
           <ul>
-            {Licenses.map((l, i) => (<li key={i}>
+            {Licenses.map((l: ILicense, i) => (<li key={i}>
               <a href={l.licenseUrl} target={'_blank'} className='link link-hover'>{l.project}</a>
             </li>))}
           </ul>

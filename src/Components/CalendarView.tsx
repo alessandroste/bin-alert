@@ -1,3 +1,4 @@
+import { IconX } from "@tabler/icons"
 import { useMemo, useState } from "react"
 import './CalendarView.css'
 
@@ -17,33 +18,30 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
     const formatDateShort = (date: Date) => date.toLocaleDateString(undefined, { weekday: 'short' })
     const formatDateMonthYear = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
 
-    const [yearMonth, setYearMonth] = useState(new Date())
-    const [today] = useState(new Date())
+    const [today] = useState(() => {
+        const date = new Date()
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    })
 
-    const buildDaysOfMonth = function (monthDate: Date): Date[] {
-        const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth())
-        const firstWeekDayOfMonth = firstDayOfMonth.getDay()
-        const days = Array.apply(null, Array(42)).map(() => new Date())
+    const [yearMonth, setYearMonth] = useState(() => new Date(today.getFullYear(), today.getMonth()))
 
+    const days = useMemo(() => {
+        const firstWeekDayOfMonth = yearMonth.getDay()
+        const days = new Array<Date>(42)
         for (let i = 0; i < firstWeekDayOfMonth; i++) {
-            days[i].setTime(firstDayOfMonth.getTime() - (firstWeekDayOfMonth - i) * dayInMilliseconds)
+            days[i] = new Date(yearMonth.getTime() - (firstWeekDayOfMonth - i) * dayInMilliseconds)
         }
-
-        days[firstWeekDayOfMonth].setTime(firstDayOfMonth.getTime())
-
+        days[firstWeekDayOfMonth] = new Date(yearMonth.getTime())
         for (let i = 0; i < 42 - firstWeekDayOfMonth; i++) {
-            days[firstWeekDayOfMonth + i].setTime(firstDayOfMonth.getTime() + dayInMilliseconds * i)
+            days[firstWeekDayOfMonth + i] = new Date(yearMonth.getTime() + dayInMilliseconds * i)
         }
-
         return days;
-    }
-
-    const days = useMemo(() => buildDaysOfMonth(yearMonth), [yearMonth])
+    }, [yearMonth])
 
     const getCalendar = useMemo((): JSX.Element[] => {
         return Array.apply(null, new Array(6))
             .map((_, i) => days.slice(i * 7, (i + 1) * 7))
-            .filter(w => w.some(d =>
+            .filter((w, i, a) => w.some(d =>
                 d.getFullYear() === yearMonth.getFullYear() &&
                 d.getMonth() === yearMonth.getMonth()))
             .map((week, i) => {
@@ -53,7 +51,7 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
                         {week.map(d => {
                             const isMonth = d.getFullYear() === yearMonth.getFullYear() && d.getMonth() === yearMonth.getMonth()
                             const isToday = d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()
-                            const cellClassName = 'h-24 relative align-top border-t' + (isMonth ? '' : ' bg-base-200') + (isToday ? '  text-primary-content' : '')
+                            const cellClassName = 'h-24 p-2 md:p-4 relative align-top border-t' + (isMonth ? '' : ' bg-base-200') + (isToday ? '  text-primary-content' : '')
                             const dayIndicatorClassName = 'rounded p-2' + (isToday ? ' bg-primary' : '')
                             const cellEntry = options.entries?.find(e => e.date.getTime() === d.getTime())
                             return (
@@ -63,14 +61,36 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
                                     <span className={dayIndicatorClassName}>
                                         {formatDate(d)}
                                     </span>
-                                    <div
-                                        className='absolute align-bottom right-0 p-4'>
-                                        <span
-                                            className='tooltip'
-                                            data-tip={cellEntry?.tooltip?.join('\n')}>
-                                            {cellEntry?.text?.join('')}
-                                        </span>
-                                    </div>
+                                    {cellEntry ? (
+                                        <label
+                                            htmlFor={'modal-calendar-' + d.getTime()}
+                                            className='absolute top-0 left-0 bottom-0 right-0 cursor-pointer'>
+                                        </label>)
+                                        : undefined}
+                                    {cellEntry ? (
+                                        <label
+
+                                            htmlFor={'modal-calendar-' + d.getTime()}
+                                            className='absolute bottom-0 right-0 p-4 cursor-pointer'>
+                                            <span
+                                                className='tooltip'
+                                                data-tip={cellEntry?.tooltip?.join('\n')}>
+                                                {cellEntry?.text?.join('')}
+                                            </span>
+                                        </label>) : undefined}
+                                    {cellEntry ? (
+                                        <input type='checkbox' id={'modal-calendar-' + d.getTime()} className='modal-toggle' />) : undefined}
+                                    {cellEntry ? (<div className='modal modal-bottom sm:modal-middle text-base-content'>
+                                        <div className='modal-box relative'>
+                                            <label htmlFor={'modal-calendar-' + d.getTime()} className='btn btn-sm btn-circle btn-secondary absolute right-2 top-2'>
+                                                <IconX />
+                                            </label>
+                                            <h3 className='font-bold text-lg'>{d.toDateString()}</h3>
+                                            <ul className='py-4 whitespace-normal'>
+                                                {cellEntry?.tooltip?.map((e, i) => (<li key={i}>{e}</li>))}
+                                            </ul>
+                                        </div>
+                                    </div>) : undefined}
                                 </td>)
                         })}
                     </tr>)
@@ -78,7 +98,7 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
     }, [days, yearMonth, options.entries])
 
     const getHeader = useMemo((): JSX.Element[] => {
-        return days.splice(0, 7)
+        return days.slice(0, 7)
             .map((_, i) => {
                 return (
                     <th
@@ -126,9 +146,9 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
     return (
         <div className=''>
             <div className='flex justify-center w-full py-5 '>
-                <div className="btn-group">
+                <div className='btn-group'>
                     <button
-                        className="btn btn-primary"
+                        className='btn btn-primary'
                         onClick={() => onYearPaginationClick('prev')}>
                         《
                     </button>
@@ -138,8 +158,8 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
                         〈
                     </button>
                     <button
-                        className="btn btn-primary"
-                        onClick={() => setYearMonth(today)}>
+                        className='btn btn-primary'
+                        onClick={() => setYearMonth(new Date(today.getFullYear(), today.getMonth()))}>
                         {dateMonthYear}
                     </button>
                     <button
@@ -148,7 +168,7 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
                         〉
                     </button>
                     <button
-                        className="btn btn-primary"
+                        className='btn btn-primary'
                         onClick={() => onYearPaginationClick('next')}>
                         》
                     </button>
@@ -164,5 +184,6 @@ export function CalendarView(options: ICalendarViewOptions): JSX.Element {
                     {getCalendar}
                 </tbody>
             </table>
-        </div>)
+        </div>
+    )
 }
