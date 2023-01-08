@@ -7,7 +7,6 @@ import { Icon } from './Components/Icon'
 import { ThemeToggle } from './Components/ThemeToggle'
 import { Constants } from './Constants'
 
-import Licenses from './Assets/licenses.json'
 import './index.css'
 
 const calendar = new Calendar()
@@ -16,6 +15,17 @@ interface ILicense {
   project: string,
   licenseUrl: string
 }
+
+const licenses: ILicense[] = [
+  {
+    project: 'daisyUI',
+    licenseUrl: 'https://raw.githubusercontent.com/saadeghi/daisyui/master/LICENSE'
+  },
+  {
+    project: 'tailwindcss',
+    licenseUrl: 'https://raw.githubusercontent.com/tailwindlabs/tailwindcss/master/LICENSE'
+  }
+]
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <div className='dotted'>
@@ -71,7 +81,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
         <h3 className='text-lg font-bold'>Licenses</h3>
         <div className='py-4'>
           <ul>
-            {Licenses.map((l: ILicense, i) => (<li key={i}>
+            {licenses.map((l: ILicense, i) => (<li key={i}>
               <a href={l.licenseUrl} target={'_blank'} className='link link-hover'>{l.project}</a>
             </li>))}
           </ul>
