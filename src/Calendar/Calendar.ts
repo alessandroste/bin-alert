@@ -50,10 +50,10 @@ export class Calendar {
     public getCategories = async (): Promise<Map<CategoryId, IDatasetCategory>> => (await this.dataSet).categories
 
     public async createICalendar(categoryFilter?: IDatasetFilter, options?: ICalendarOptions): Promise<string> {
-        let dates = await this.getDates(categoryFilter)
-        let categories = await this.getCategories()
+        const dates = await this.getDates(categoryFilter)
+        const categories = await this.getCategories()
 
-        let calendar = ical({
+        const calendar = ical({
             name: 'bin-alert',
             prodId: {
                 company: 'bin',
@@ -61,18 +61,18 @@ export class Calendar {
             }
         })
         dates.forEach(d => {
-            let category = categories.get(d.category)
-            let eventStartTime = options?.eventTimeShift ? this.getShiftedTime(d.date, options.eventTimeShift) : d.date
-            let eventEndTime = this.getShiftedTime(eventStartTime, options?.eventDuration ? options.eventDuration : { minutes: 15 })
+            const category = categories.get(d.category)
+            const eventStartTime = options?.eventTimeShift ? this.getShiftedTime(d.date, options.eventTimeShift) : d.date
+            const eventEndTime = this.getShiftedTime(eventStartTime, options?.eventDuration ? options.eventDuration : { minutes: 15 })
 
-            let event = calendar.createEvent({
+            const event = calendar.createEvent({
                 start: eventStartTime,
                 end: eventEndTime,
                 summary: 'Waste collection',
                 description: `Reminder for waste collection of ${category?.material} in the area ${category?.area}. Collection day is ${d.date.toDateString()}`,
             })
 
-            let reminderDates = (options?.reminders ?? []).map(r => this.getShiftedTime(d.date, r))
+            const reminderDates = (options?.reminders ?? []).map(r => this.getShiftedTime(d.date, r))
             reminderDates.forEach(r => {
                 event.createAlarm({
                     type: ICalAlarmType.display,
@@ -85,10 +85,10 @@ export class Calendar {
     }
 
     private getShiftedTime(originalTime: Date, timeShift: ITimeDelta): Date {
-        let daysShiftInMs = (timeShift.days ?? 0) * 24 * 60 * 60 * 1000
-        let hoursShiftInMs = (timeShift.hours ?? 0) * 60 * 60 * 1000
-        let minutesShiftInMs = (timeShift.minutes ?? 0) * 60 * 1000
-        let shiftedDate = new Date(originalTime)
+        const daysShiftInMs = (timeShift.days ?? 0) * 24 * 60 * 60 * 1000
+        const hoursShiftInMs = (timeShift.hours ?? 0) * 60 * 60 * 1000
+        const minutesShiftInMs = (timeShift.minutes ?? 0) * 60 * 1000
+        const shiftedDate = new Date(originalTime)
         shiftedDate.setTime(shiftedDate.getTime() + daysShiftInMs + hoursShiftInMs + minutesShiftInMs)
         return shiftedDate
     }
