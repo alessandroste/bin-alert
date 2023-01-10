@@ -64,10 +64,13 @@ export class OpenDataProvider implements IDataProvider {
             const lines = await this.downloadResourceData(id)
 
             for (const line of lines) {
-                const [area, dateString] = line.split(',')
-
-                if (area === undefined || dateString === undefined)
+                if (!line)
                     continue
+
+                const [area, dateString] = line.split(',')
+                if (!area || !dateString)
+                    continue
+
                 const date = new Date(dateString)
                 const category: IDatasetCategory = {
                     material: material,
