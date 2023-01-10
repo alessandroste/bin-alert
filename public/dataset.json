@@ -18,5 +18,25 @@
         "file": "entsorgungskalender_karton_2023.csv",
         "year": 2023,
         "type": "CARDBOARD"
+    },
+    {
+        "file": "entsorgungskalender_bioabfall_2022.csv",
+        "year": 2022,
+        "type": "ORGANIC"
+    },
+    {
+        "file": "entsorgungskalender_bioabfall_2023.csv",
+        "year": 2023,
+        "type": "ORGANIC"
+    },
+    {
+        "file": "entsorgungskalender_kehricht_2022.csv",
+        "year": 2022,
+        "type": "HOUSEHOLD"
+    },
+    {
+        "file": "entsorgungskalender_kehricht_2023.csv",
+        "year": 2023,
+        "type": "HOUSEHOLD"
     }
 ]

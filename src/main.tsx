@@ -3,13 +3,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { Calendar } from './Calendar/Calendar'
+import { OpenDataProvider } from './Calendar/OpenDataProvider'
 import { Icon } from './Components/Icon'
 import { ThemeToggle } from './Components/ThemeToggle'
 import { Constants } from './Constants'
 
 import './index.css'
 
-const calendar = new Calendar()
+const dataProvider = new OpenDataProvider()
+const calendar = new Calendar(dataProvider)
 
 interface ILicense {
   project: string,
@@ -24,6 +26,10 @@ const licenses: ILicense[] = [
   {
     project: 'tailwindcss',
     licenseUrl: 'https://raw.githubusercontent.com/tailwindlabs/tailwindcss/master/LICENSE'
+  },
+  {
+    project: 'ical-generator',
+    licenseUrl: 'https://raw.githubusercontent.com/sebbo2002/ical-generator/develop/LICENSE'
   }
 ]
 

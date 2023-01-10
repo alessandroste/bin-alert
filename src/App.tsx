@@ -1,9 +1,11 @@
 import { IconArrowDownCircle, IconArrowUpRightCircle, IconInfoCircle } from '@tabler/icons'
 import { ChangeEvent, useEffect, useMemo, useState } from 'react'
-import { Calendar, Category, ICalendarOptions, IDatasetCategory, IDatasetEvent, IDatasetFilter, ITimeDelta, Material } from './Calendar/Calendar'
-import { distinctFilter } from './Calendar/Utilities'
+import { Calendar, ICalendarOptions, IDatasetFilter, ITimeDelta } from './Calendar/Calendar'
+import { CategoryId, IDatasetCategory, IDatasetEvent, Material } from './Calendar/Model'
+import { distinctFilter, materialToIcon, materialToText } from './Calendar/Utilities'
 import { CalendarView, IDayCell } from './Components/CalendarView'
 import { CollapsibleMultiselect } from './Components/CollapsibleMultiselect'
+import { downloadTextFile, openTextFile } from './Utilities'
 
 interface IAppOptions {
   calendar: Calendar
@@ -36,12 +38,15 @@ function App(options: IAppOptions) {
   }
 
   // Data related states
-  const [categories, setCategories] = useState(new Map<Category, IDatasetCategory>())
-  const [dates, setDates] = useState(new Array<IDatasetEvent>())
-  const [filter, setFilter] = useState<IDatasetFilter>({
-    startDate: new Date()
-  })
   const [calendarOptions, setCalendarOptions] = useState<ICalendarOptions>()
+  const [categories, setCategories] = useState(new Map<CategoryId, IDatasetCategory>())
+  const [dates, setDates] = useState(new Array<IDatasetEvent>())
+  const [filter, setFilter] = useState<IDatasetFilter>(() => {
+    const now = new Date()
+    return ({
+      startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    })
+  })
 
   // UI selection states
   const [uiState, setUiState] = useState<ISettingsUIState>({
@@ -57,17 +62,15 @@ function App(options: IAppOptions) {
     calendar.getDates(filter).then(dates => setDates(dates))
   }, [filter])
 
-  const getMaterialOptions = useMemo(() => {
-    return Array.from(categories.values()).map(c => Material[c.material] as keyof typeof Material).filter(distinctFilter).map((m, i) => {
-      return { key: m.toString(), value: Material[m].toString() }
-    })
-  }, [categories])
+  const getMaterialOptions = useMemo(() =>
+    Array.from(categories.values()).map(c => Material[c.material] as keyof typeof Material).filter(distinctFilter).map((m) =>
+      ({ key: m.toString(), value: materialToIcon(m) + ' ' + materialToText(m) })),
+    [categories])
 
-  const getAreaOptions = useMemo(() => {
-    return Array.from(categories.values()).map(c => c.area).filter(distinctFilter).map((a, i) => {
-      return { key: i.toString(), value: a! }
-    })
-  }, [categories])
+  const getAreaOptions = useMemo(() =>
+    Array.from(categories.values()).map(c => c.area).filter(distinctFilter).map((a, i) =>
+      ({ key: i.toString(), value: a! })),
+    [categories])
 
   useEffect(() => {
     setFilter(f => ({
@@ -127,19 +130,10 @@ function App(options: IAppOptions) {
     }))
   }
 
-  const categoryToIcon = useMemo(() => function (categoryIdx: Category): string {
+  const categoryToIcon = useMemo(() => function (categoryIdx: CategoryId): string {
     const category = categories?.get(categoryIdx)
     const material = category?.material as Material | keyof typeof Material
-    if (material === undefined)
-      return ''
-    switch (material) {
-      case Material.CARDBOARD:
-      case 'CARDBOARD':
-        return '📦'
-      case Material.PAPER:
-      case 'PAPER':
-        return '📰'
-    }
+    return materialToIcon(material)
   }, [categories])
 
   const generateDatesViews = useMemo(() => {
@@ -148,10 +142,12 @@ function App(options: IAppOptions) {
       .reduce((acc: { [key: string]: IDayCell }, value: IDatasetEvent) => {
         const key = value.date.toLocaleDateString('en', { day: '2-digit', month: '2-digit', year: 'numeric' })
         const icon = categoryToIcon(value.category)
+        const material = categories?.get(value.category)?.material
+        const text = ' ' + (material ? materialToText(material) : '')
         const entry = acc[key] ?? { date: value.date, text: [], tooltip: [] }
         if (!entry.text.includes(icon))
           entry.text.push(icon)
-        let tooltipText = icon + ' - ' + categories?.get(value.category)?.area
+        let tooltipText = icon + text + ' - ' + categories?.get(value.category)?.area
         if (!entry.tooltip?.includes(tooltipText))
           entry.tooltip?.push(tooltipText)
         acc[key] = entry
@@ -160,19 +156,12 @@ function App(options: IAppOptions) {
     return Object.values(cells)
   }, [categoryToIcon, dates, categories])
 
-  const downloadTextFile = (text: string) => {
-    const file = new Blob([text], { type: "text/plain" })
-    const element = document.createElement("a")
-    element.href = URL.createObjectURL(file)
-    element.download = "bin-alert.ics"
-    document.body.appendChild(element)
-    element.click()
-    element.remove()
-  };
-
-  const openTextFile = (text: string) => {
-    const file = new Blob([text], { type: "text/plain" })
-    window.open(URL.createObjectURL(file), '_blank')
+  const getDateValueForInput = function (date: Date | undefined): string | undefined {
+    if (date === undefined)
+      return undefined
+    const offset = date.getTimezoneOffset()
+    date = new Date(date.getTime() - (offset * 60 * 1000))
+    return date.toISOString().split('T')[0]
   }
 
   return (
@@ -206,17 +195,29 @@ function App(options: IAppOptions) {
               <input className='input'
                 type={'date'}
                 onChange={e => onDateChange(e.target.value, 'start')}
-                value={filter.startDate?.toISOString().split('T')[0]} />
+                value={getDateValueForInput(filter?.startDate)} />
               <label className='label'>
                 <span className='label-text'>End date</span>
               </label>
               <input className='input'
                 type={'date'}
-                onChange={e => onDateChange(e.target.value, 'end')} />
+                onChange={e => onDateChange(e.target.value, 'end')}
+                value={getDateValueForInput(filter?.endDate)} />
               <div className='divider'></div>
               <h2 className='card-title'>Event</h2>
               <label className='label'>
-                <span className='label-text'>Event time</span>
+                <span className='label-text'>Event time
+                  <div className='dropdown'>
+                    <label tabIndex={0} className='btn btn-circle btn-ghost btn-xs text-info'>
+                      <IconInfoCircle className='w-4 h-4' />
+                    </label>
+                    <div tabIndex={0} className='card compact dropdown-content shadow bg-base-100 rounded-box w-64'>
+                      <div className='card-body'>
+                        <p>Event time with respect to the collection date.</p>
+                      </div>
+                    </div>
+                  </div>
+                </span>
               </label>
               <select
                 className='select'
@@ -259,7 +260,8 @@ function App(options: IAppOptions) {
                         <p>Allows to set a reminder in the produced calendar for each event. Most of the online calendars do not support these alerts.</p>
                       </div>
                     </div>
-                  </div></span>
+                  </div>
+                </span>
                 <input
                   type='checkbox'
                   className='toggle label-text-alt'
@@ -274,7 +276,7 @@ function App(options: IAppOptions) {
                 </select>) : undefined}
               <div className='card-actions justify-end pt-5'>
                 <button className='btn btn-primary gap-2'
-                  onClick={() => calendar.createICalendar(filter, calendarOptions).then(s => downloadTextFile(s))}>
+                  onClick={() => calendar.createICalendar(filter, calendarOptions).then(s => downloadTextFile(s, 'bin-alert.ics'))}>
                   <IconArrowDownCircle className='h-6 w-6' />
                   Download
                 </button>
@@ -294,7 +296,7 @@ function App(options: IAppOptions) {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 

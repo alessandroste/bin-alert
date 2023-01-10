@@ -1,35 +1,6 @@
 import ical, { ICalAlarmType } from 'ical-generator'
-
-export enum Region {
-    ZH
-}
-
-export enum Material {
-    PAPER = 'PAPER',
-    CARDBOARD = 'CARDBOARD'
-}
-
-// Reading the metadata of the dataset
-export interface IDatasetEntry {
-    file: string
-    year: number
-    type: keyof typeof Material
-}
-
-export type Category = number
-
-export interface IDatasetEvent {
-    category: Category
-    date: Date
-}
-
-export interface IDatasetCategory {
-    category?: Category
-    material: Material
-    region: Region
-    area?: string
-    subArea?: string
-}
+import { CategoryId, IDataProvider, IDataset, IDatasetCategory, IDatasetEvent, Material, Region } from './Model'
+import { StaticDataProvider } from './StaticDataProvider'
 
 export interface IDatasetFilter {
     materials?: Material[]
@@ -53,35 +24,30 @@ export interface ICalendarOptions {
 }
 
 export class Calendar {
-    private categories = new Array<IDatasetCategory>()
-    private data = new Array<IDatasetEvent>()
-    private load: Promise<void>
+    private dataSet: Promise<IDataset>
 
-    constructor() {
-        this.load = this.loadData()
+    constructor(provider?: IDataProvider) {
+        this.dataSet = (provider ?? new StaticDataProvider()).dataset
     }
 
     public async getDates(categoryFilter?: IDatasetFilter): Promise<IDatasetEvent[]> {
-        await this.load
-        let categoryIndices = this.categories.filter(cat =>
+        const categoryIndices = Array.from((await this.dataSet).categories.entries()).filter(([, cat]) =>
             (categoryFilter?.areas === undefined || categoryFilter.areas.some(a => a === cat.area)) &&
             (categoryFilter?.materials === undefined || categoryFilter.materials.some(m => m == cat.material)))
-            .map(cat => cat.category)
-        let dates = this.data.filter(value => categoryIndices.includes(value.category))
-            .filter(date => {
-                if (categoryFilter?.startDate && date.date < categoryFilter?.startDate)
+            .map(([cat]) => cat)
+        const dates = Array.from((await this.dataSet).events)
+            .filter(value => categoryIndices.includes(value.category))
+            .filter(({ date }) => {
+                if (categoryFilter?.startDate && date.getTime() < categoryFilter?.startDate.getTime())
                     return false
-                if (categoryFilter?.endDate && date.date > categoryFilter?.endDate)
+                if (categoryFilter?.endDate && date.getTime() > categoryFilter?.endDate.getTime())
                     return false
                 return true
             })
         return dates
     }
 
-    public async getCategories(): Promise<Map<Category, IDatasetCategory>> {
-        await this.load
-        return new Map(this.categories.map(c => ([c.category!, c])))
-    }
+    public getCategories = async (): Promise<Map<CategoryId, IDatasetCategory>> => (await this.dataSet).categories
 
     public async createICalendar(categoryFilter?: IDatasetFilter, options?: ICalendarOptions): Promise<string> {
         let dates = await this.getDates(categoryFilter)
@@ -118,34 +84,6 @@ export class Calendar {
         return calendar.toString()
     }
 
-    private async loadData(): Promise<void> {
-        let dataset: IDatasetEntry[] = await (await fetch("dataset.json")).json()
-        for await (const datasetEntry of dataset) {
-            let text = await (await fetch(datasetEntry.file)).text()
-            let lines = text.split(/\r?\n/)
-            lines.splice(0, 1) // Discard headers
-            lines.forEach(line => {
-                let [area, dateString] = line.replaceAll('"', '').split(',')
-                if (area === undefined || dateString === undefined)
-                    return
-                let [y, m, d] = dateString.split('-').map(e => Number(e))
-                let category: IDatasetCategory = {
-                    material: Material[datasetEntry.type],
-                    region: Region.ZH,
-                    area: area,
-                    subArea: undefined
-                }
-                let index = this.getOrAddCategory(category)
-                let date = new Date(y, m - 1, d)
-                if (!this.data.some(e => e.category === index && e.date === date))
-                    this.data.push({
-                        category: index,
-                        date: date
-                    })
-            })
-        }
-    }
-
     private getShiftedTime(originalTime: Date, timeShift: ITimeDelta): Date {
         let daysShiftInMs = (timeShift.days ?? 0) * 24 * 60 * 60 * 1000
         let hoursShiftInMs = (timeShift.hours ?? 0) * 60 * 60 * 1000
@@ -153,21 +91,5 @@ export class Calendar {
         let shiftedDate = new Date(originalTime)
         shiftedDate.setTime(shiftedDate.getTime() + daysShiftInMs + hoursShiftInMs + minutesShiftInMs)
         return shiftedDate
-    }
-
-    private getOrAddCategory(category: IDatasetCategory): Category {
-        let existingCategory = this.categories.find(value =>
-            value.material === category.material &&
-            value.region === category.region &&
-            value.area === category.area &&
-            value.subArea === category.subArea)
-
-        if (existingCategory && existingCategory.category)
-            return existingCategory.category
-
-        return this.categories.push({
-            ...category,
-            category: this.categories.length + 1
-        })
     }
 }
